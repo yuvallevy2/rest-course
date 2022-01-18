@@ -52,3 +52,11 @@ def get_bdb(uid: UID):
 def get_all_bdbs():
     for uid in all_bdbs:
         yield all_bdbs[uid]
+
+
+@app.delete("/bdbs/{uid}", tags=["bdb"], operation_id="delete_bdb", response_model=None, status_code=status.HTTP_204_NO_CONTENT)
+def delete_bdb(uid: UID):
+    try:
+        del(all_bdbs[uid])
+    except KeyError:
+        raise HTTPException(status_code=404)

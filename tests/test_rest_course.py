@@ -2,6 +2,8 @@ import random
 
 import httpx
 import pytest
+from fastapi import status
+
 
 BASE_URL = "http://localhost:8000"
 BDBS_URL = f"{BASE_URL}/bdbs"
@@ -60,6 +62,9 @@ def test_create_bdb(client):
 
     assert uid in bdb_uids
 
-    # Clean up
-    # TODO: Not implemented yet on the server side
-    # client.delete(bdb_url)
+    res = client.delete(bdb_url)
+    assert res.status_code == status.HTTP_204_NO_CONTENT
+
+    r = client.get(BDBS_URL)
+    bdb_uids = set(bdb["uid"] for bdb in r.json())
+    assert uid not in bdb_uids
