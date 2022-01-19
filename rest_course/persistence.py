@@ -20,6 +20,10 @@ def deserialize(data: str):
 red = redis.Redis(decode_responses=True)
 
 
+def get_bdb_count() -> int:
+    return red.zcard("bdb:all")
+
+
 def generate_bdb_uid() -> UID:
     return UID(red.incr("bdb_uid"))
 

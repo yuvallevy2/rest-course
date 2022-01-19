@@ -25,7 +25,7 @@ def test_nop(client):
     pass
 
 
-def test_create_bdb(client):
+def donttest_create_bdb(client):
     """
     Assumptions:
      - We do not rely on any preexisting server-side objects
@@ -71,3 +71,9 @@ def test_create_bdb(client):
     # Clean up
     # TODO: Not implemented yet on the server side
     # client.delete(bdb_url)
+
+
+def test_pagination(client):
+    r = client.get(BDBS_URL, params={"limit": 2, "offset": 0})
+    # r = client.get(BDBS_URL)
+    pass

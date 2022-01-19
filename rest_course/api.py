@@ -52,12 +52,22 @@ def get_all_bdbs(
         )
 
     # Exercise: Look up and use the correct numbers
+    prev_offset = min(offset - limit, 0)
+    last_offset = (bdb_manager.get_bdb_count() // limit) * limit
+    next_offset = min(offset + limit, last_offset)
+    # prev_offset = 0
+    # last_offset = 20
+    # next_offset = 10
+
     rels = dict(
         first=url_with_offset(0),
-        prev=url_with_offset(40),
-        next=url_with_offset(50),
-        last=url_with_offset(90),
+        last=url_with_offset(last_offset),
     )
+    if offset != 0:
+        rels['prev'] = url_with_offset(prev_offset)
+
+    if offset <= last_offset:
+        rels['next'] = url_with_offset(next_offset)
 
     response.headers["link"] = link(rels)
 

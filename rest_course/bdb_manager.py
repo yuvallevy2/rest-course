@@ -27,3 +27,7 @@ def get_bdb(uid: UID) -> BDB:
 def get_all_bdbs(offset: int, limit: int) -> Iterable[BDB]:
     for uid in persistence.get_bdb_uids(offset=offset, limit=limit):
         yield persistence.get_bdb(uid)
+
+
+def get_bdb_count() -> int:
+    return persistence.get_bdb_count()
