@@ -9,6 +9,8 @@ from .params import BDBParams, BDBResponse
 from .types import UID
 from .util import link, url_for
 
+import logging
+
 app = FastAPI(title="REST Course", description="REST API Course")
 
 
@@ -52,12 +54,14 @@ def get_all_bdbs(
         )
 
     # Exercise: Look up and use the correct numbers
-    prev_offset = min(offset - limit, 0)
+    logging.critical("calculating offsets")
+    prev_offset = max(offset - limit, 0)
+    logging.critical(f"prev_offset {prev_offset}")
+
     last_offset = (bdb_manager.get_bdb_count() // limit) * limit
+    logging.critical(f"last_offset {last_offset}")
     next_offset = min(offset + limit, last_offset)
-    # prev_offset = 0
-    # last_offset = 20
-    # next_offset = 10
+    logging.critical(f"next_offset {next_offset}")
 
     rels = dict(
         first=url_with_offset(0),
@@ -69,6 +73,7 @@ def get_all_bdbs(
     if offset <= last_offset:
         rels['next'] = url_with_offset(next_offset)
 
+    logging.critical(f"rels: {rels}")
     response.headers["link"] = link(rels)
 
     for bdb in bdb_manager.get_all_bdbs(offset=offset, limit=limit):
