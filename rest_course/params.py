@@ -1,7 +1,7 @@
 from pydantic import HttpUrl, PositiveInt
 from pydantic.dataclasses import dataclass
 
-from .types import BDB, BDBType
+from .types import BDB, BDBType, BDBVersion
 
 
 class Url(HttpUrl):
@@ -13,6 +13,7 @@ class BDBParams:
     name: str
     memory_size: PositiveInt
     type: BDBType = BDBType.REDIS
+    version: BDBVersion = BDBVersion.V5
 
 
 @dataclass

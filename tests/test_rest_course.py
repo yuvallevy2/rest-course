@@ -2,6 +2,11 @@ import random
 
 import httpx
 import pytest
+from datetime import datetime
+import asyncio
+
+from rest_course.bdb_manager import UPGRADE_DELAY
+from rest_course.types import BDBVersion
 
 BASE_URL = "http://localhost:8000"
 BDBS_URL = f"{BASE_URL}/bdbs"
@@ -13,6 +18,14 @@ def client():
     return httpx.Client(
         timeout=3600,
         event_hooks={"response": [lambda r: r.raise_for_status()]},
+    )
+
+
+@pytest.fixture(scope="module")
+def asyncclient():
+    return httpx.AsyncClient(
+        timeout=3600,
+        # event_hooks={"response": [lambda r: r.raise_for_status()]},
     )
 
 
@@ -94,11 +107,11 @@ def test_updating_after_conflicting_update_fails(client):
     r = client.post(BDBS_URL, json=params)
     bdb_response = r.json()
     bdb_url = bdb_response["url"]
-    print(f"\n*** {bdb_response=}")
+    print(f"\n*** {bdb_response}")
 
     # Wait for conflicting update to happen
     event = client.post(EVENTS_URL).json()
-    print(f"\n*** Waiting for event: {event=}")
+    print(f"\n*** Waiting for event: {event}")
     print(f"\nUpdate the BDB with a memory_size of 8 and then trigger the event with:")
     print(f'\nPUT {event["url"]}')
     client.get(event["url"])
@@ -109,3 +122,27 @@ def test_updating_after_conflicting_update_fails(client):
 
     with pytest.raises(httpx.HTTPStatusError, match="409"):
         client.put(bdb_url, json=bdb_response)
+
+@pytest.mark.asyncio
+async def test_parallel_upgrade(client, asyncclient):
+    r = client.get(BDBS_URL)
+    bdb_responses = r.json()
+    bdb_uids = set(bdb_response["bdb"]["uid"] for bdb_response in bdb_responses)
+
+    print(f"starting with upgrades: {datetime.now()}")
+
+    tasks = []
+    for uid in bdb_uids:
+        task = asyncio.create_task(asyncclient.put(f"{BDBS_URL}/{uid}/upgrade", params={"version": BDBVersion.V6.value}, timeout=15))
+        tasks.append(task)
+
+    for task in tasks:
+        await task
+
+    print(f"finished with upgrades: {datetime.now()}")
+
+
+
+
+
+

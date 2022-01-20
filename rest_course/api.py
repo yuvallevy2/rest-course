@@ -9,6 +9,7 @@ from . import bdb_manager, errors
 from .params import BDBParams, BDBResponse, EventResponse
 from .types import UID
 from .util import url_for
+import logging
 
 app = FastAPI(title="REST Course", description="REST API Course")
 
@@ -59,6 +60,27 @@ def get_all_bdbs(request: Request):
     for bdb in bdb_manager.get_all_bdbs():
         url = url_for(request, "get_bdb", uid=str(bdb.uid))
         yield BDBResponse(bdb=bdb, url=url)
+
+
+
+@app.put(
+    "/bdbs/{uid}/upgrade",
+    tags=["bdb"],
+    operation_id="upgrade_bdb",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def upgrade_bdb(uid: UID, request: Request):
+    new_version = request.query_params['version']
+    logging.critical(f"upgrade_bdb called uid: {uid} version: {new_version}")
+    try:
+        await bdb_manager.update_version(uid=uid, version=new_version)
+    except errors.InvalidOperationError as e:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=str(e))
+
+
+
+
 
 
 #############################################
